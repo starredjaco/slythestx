@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>The Swiss Army Worm for Mobile & Web Security</strong><br>
+  <strong>The Swiss Army Worm for Mobile</strong><br>
   <i>A multi-tool framework for deep code analysis and dynamic vulnerability hunting.</i>
 </p>
 
