@@ -1,0 +1,78 @@
+[
+  {
+    "id": "ANDROID_DEBUGGABLE",
+    "platform": "ANDROID",
+    "file": "AndroidManifest.xml",
+    "severity": "CRITICAL",
+    "flag": "android:debuggable",
+    "description": "La aplicación está configurada como debuggable en producción",
+    "recommendation": "Remover android:debuggable=\"true\" en builds de producción",
+    "location": "application",
+    "when": {
+      "type": "attribute",
+      "path": "application",
+      "name": "debuggable",
+      "operator": "equals",
+      "value": true
+    },
+    "evidence": {
+      "search": "android:debuggable=\"true\""
+    }
+  },
+  {
+    "id": "ANDROID_ALLOW_BACKUP",
+    "platform": "ANDROID",
+    "file": "AndroidManifest.xml",
+    "severity": "MEDIUM",
+    "flag": "android:allowBackup",
+    "description": "Los datos de la aplicación pueden ser respaldados por el usuario",
+    "recommendation": "Establecer android:allowBackup=\"false\" si se manejan datos sensibles",
+    "location": "application",
+    "when": {
+      "type": "attribute",
+      "path": "application",
+      "name": "allowBackup",
+      "operator": "equals",
+      "value": true
+    },
+    "evidence": {
+      "search": "android:allowBackup=\"true\""
+    }
+  },
+  {
+    "id": "ANDROID_CLEARTEXT",
+    "platform": "ANDROID",
+    "file": "AndroidManifest.xml",
+    "severity": "HIGH",
+    "flag": "android:usesCleartextTraffic",
+    "description": "La aplicación permite tráfico HTTP sin cifrar",
+    "recommendation": "Usar exclusivamente HTTPS y deshabilitar cleartext traffic",
+    "location": "application",
+    "when": {
+      "type": "attribute",
+      "path": "application",
+      "name": "usesCleartextTraffic",
+      "operator": "equals",
+      "value": true
+    },
+    "evidence": {
+      "search": "usesCleartextTraffic=\"true\""
+    }
+  },
+  {
+    "id": "ANDROID_NO_NETWORK_SECURITY_CONFIG",
+    "platform": "ANDROID",
+    "file": "AndroidManifest.xml",
+    "severity": "LOW",
+    "flag": "android:networkSecurityConfig",
+    "description": "No se ha configurado Network Security Config",
+    "recommendation": "Definir una política de seguridad de red mediante networkSecurityConfig",
+    "location": "application",
+    "when": {
+      "type": "attribute",
+      "path": "application",
+      "name": "networkSecurityConfig",
+      "operator": "not_exists"
+    }
+  }
+]

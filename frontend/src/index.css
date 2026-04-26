@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.code-context {
+  background: #0d1117;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  border: 1px solid #30363d;
+}
+
+.code-context .line {
+  display: flex;
+  padding: 2px 8px;
+  margin: 0 -8px;
+  border-radius: 4px;
+}
+
+.code-context .line.vulnerable {
+  background: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+  padding-left: 5px;
+}
+
+.code-context .line-num {
+  color: #6e7681;
+  min-width: 45px;
+  text-align: right;
+  padding-right: 16px;
+  user-select: none;
+  border-right: 1px solid #30363d;
+  margin-right: 16px;
+}
+
+.code-context .line.vulnerable .line-num {
+  color: #f87171;
+  font-weight: 600;
+}
+.code-context .code {
+  color: #c9d1d9;
+  white-space: pre;
+  flex: 1;
+}
+
+.vulnerability-highlight {
+  background: linear-gradient(180deg, transparent 40%, #fbbf24 40%, #fbbf24 90%, transparent 90%);
+  color: #1f2937;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}

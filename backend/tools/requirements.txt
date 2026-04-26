@@ -1,0 +1,6 @@
+jsbeautifier
+reflutter==0.7.2
+pyelftools==0.32
+future==0.18.3
+lz4==4.3.1
+xxhash==3.2.0

@@ -1,0 +1,14 @@
+services:
+  backend:
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /var/run/usbmuxd:/var/run/usbmuxd
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+
+  worker:
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /var/run/usbmuxd:/var/run/usbmuxd
+    devices:
+      - /dev/bus/usb:/dev/bus/usb

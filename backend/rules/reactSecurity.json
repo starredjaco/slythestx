@@ -1,0 +1,403 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-01",
+  "description": "Security rules for React Native bundle analysis",
+  
+  "dependencies": [
+    {
+      "id": "RN-DEP-001",
+      "package": "react-native",
+      "vulnerableVersions": "<0.64.0",
+      "severity": "high",
+      "cve": "CVE-2020-1920",
+      "title": "React Native URL Parsing Vulnerability",
+      "description": "Incorrect URL parsing could allow attackers to bypass security controls",
+      "recommendation": "Upgrade react-native to version 0.64.0 or higher",
+      "owaspCategory": "M1: Improper Platform Usage"
+    },
+    {
+      "id": "RN-DEP-002",
+      "package": "axios",
+      "vulnerableVersions": "<0.21.2",
+      "severity": "high",
+      "cve": "CVE-2021-3749",
+      "title": "Axios ReDoS Vulnerability",
+      "description": "Regular Expression Denial of Service in axios before 0.21.2",
+      "recommendation": "Upgrade axios to version 0.21.2 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-003",
+      "package": "lodash",
+      "vulnerableVersions": "<4.17.21",
+      "severity": "critical",
+      "cve": "CVE-2021-23337",
+      "title": "Lodash Command Injection",
+      "description": "Prototype pollution and command injection vulnerability",
+      "recommendation": "Upgrade lodash to version 4.17.21 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-004",
+      "package": "moment",
+      "vulnerableVersions": "<2.29.4",
+      "severity": "high",
+      "cve": "CVE-2022-31129",
+      "title": "Moment.js ReDoS Vulnerability",
+      "description": "ReDoS when parsing user-provided dates",
+      "recommendation": "Upgrade to 2.29.4+ or migrate to date-fns/dayjs",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-005",
+      "package": "react-native-webview",
+      "vulnerableVersions": "<11.13.0",
+      "severity": "high",
+      "cve": null,
+      "title": "React Native WebView Security Issues",
+      "description": "Older versions may be vulnerable to XSS and injection attacks",
+      "recommendation": "Upgrade react-native-webview to version 11.13.0 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-006",
+      "package": "ua-parser-js",
+      "vulnerableVersions": "<0.7.33",
+      "severity": "critical",
+      "cve": "CVE-2022-25927",
+      "title": "UA-Parser-JS ReDoS",
+      "description": "Regular Expression Denial of Service vulnerability",
+      "recommendation": "Upgrade ua-parser-js to version 0.7.33 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-007",
+      "package": "minimist",
+      "vulnerableVersions": "<1.2.6",
+      "severity": "critical",
+      "cve": "CVE-2021-44906",
+      "title": "Minimist Prototype Pollution",
+      "description": "Prototype pollution vulnerability in minimist",
+      "recommendation": "Upgrade minimist to version 1.2.6 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-008",
+      "package": "node-fetch",
+      "vulnerableVersions": "<2.6.7",
+      "severity": "high",
+      "cve": "CVE-2022-0235",
+      "title": "Node-fetch Information Exposure",
+      "description": "Exposure of sensitive information to unauthorized actor",
+      "recommendation": "Upgrade node-fetch to version 2.6.7 or higher",
+      "owaspCategory": "M3: Insecure Communication"
+    },
+    {
+      "id": "RN-DEP-009",
+      "package": "shell-quote",
+      "vulnerableVersions": "<1.7.3",
+      "severity": "critical",
+      "cve": "CVE-2021-42740",
+      "title": "Shell-quote Command Injection",
+      "description": "Command injection vulnerability in shell-quote",
+      "recommendation": "Upgrade shell-quote to version 1.7.3 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-010",
+      "package": "async",
+      "vulnerableVersions": "<3.2.2",
+      "severity": "high",
+      "cve": "CVE-2021-43138",
+      "title": "Async Prototype Pollution",
+      "description": "Prototype pollution via mapValues() method",
+      "recommendation": "Upgrade async to version 3.2.2 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "RN-DEP-011",
+      "package": "@react-native-async-storage/async-storage",
+      "vulnerableVersions": "<1.17.0",
+      "severity": "medium",
+      "cve": null,
+      "title": "AsyncStorage Security Improvements",
+      "description": "Older versions lack security improvements for data storage",
+      "recommendation": "Upgrade to version 1.17.0 or higher",
+      "owaspCategory": "M2: Insecure Data Storage"
+    },
+    {
+      "id": "RN-DEP-012",
+      "package": "react-native-reanimated",
+      "vulnerableVersions": "<2.10.0",
+      "severity": "low",
+      "cve": null,
+      "title": "React Native Reanimated Updates",
+      "description": "Older versions may have stability and security issues",
+      "recommendation": "Upgrade to version 2.10.0 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    }
+  ],
+
+  "patterns": {
+    "crypto": [
+      {
+        "id": "RN-CRYPTO-001",
+        "pattern": "\\.(encrypt|decrypt)\\s*\\(",
+        "severity": "medium",
+        "title": "Encryption/Decryption Operation",
+        "description": "Cryptographic operation detected. Verify proper key management.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Ensure strong algorithms (AES-256) and secure key storage"
+      },
+      {
+        "id": "RN-CRYPTO-002",
+        "pattern": "\\.(md5|MD5)\\s*\\(",
+        "severity": "high",
+        "title": "Weak Hash Algorithm (MD5)",
+        "description": "MD5 is cryptographically broken",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use SHA-256 or stronger hash algorithms"
+      },
+      {
+        "id": "RN-CRYPTO-003",
+        "pattern": "\\.(sha1|SHA1)\\s*\\(",
+        "severity": "medium",
+        "title": "Weak Hash Algorithm (SHA1)",
+        "description": "SHA1 is deprecated for security purposes",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use SHA-256 or stronger hash algorithms"
+      },
+      {
+        "id": "RN-CRYPTO-004",
+        "pattern": "createCipher\\s*\\(\\s*['\"]?(des|DES|3des|rc4|RC4)",
+        "severity": "critical",
+        "title": "Weak Encryption Algorithm",
+        "description": "DES, 3DES, and RC4 are deprecated encryption algorithms",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use AES-256 for symmetric encryption"
+      },
+      {
+        "id": "RN-CRYPTO-005",
+        "pattern": "CryptoJS\\.enc|CryptoJS\\.AES\\.encrypt|CryptoJS\\.AES\\.decrypt|AES\\.encrypt|AES\\.decrypt|EncryptionHelper\\.",
+        "severity": "info",
+        "title": "CryptoJS or Custom Encryption Helper Detected",
+        "description": "Se ha detectado el uso de CryptoJS o de una clase personalizada de cifrado. Requiere revisión manual de gestión de claves.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Verifica que las claves no estén hardcodeadas y que se use un almacenamiento seguro (Keystore/Keychain)."
+      }
+    ],
+    "storage": [
+      {
+        "id": "RN-STORAGE-001",
+        "pattern": "AsyncStorage\\.(setItem|multiSet)\\s*\\(",
+        "severity": "medium",
+        "title": "AsyncStorage Usage",
+        "description": "AsyncStorage stores data unencrypted on device",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Use react-native-keychain or encrypted-storage for sensitive data"
+      },
+      {
+        "id": "RN-STORAGE-002",
+        "pattern": "localStorage\\.(setItem|getItem)\\s*\\(",
+        "severity": "medium",
+        "title": "LocalStorage Usage",
+        "description": "localStorage is not secure for sensitive data",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Use secure storage solutions for sensitive data"
+      },
+      {
+        "id": "RN-STORAGE-003",
+        "pattern": "SecureStore|Keychain|EncryptedStorage",
+        "severity": "info",
+        "title": "Secure Storage Detected",
+        "description": "Application uses secure storage mechanism",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Good practice - ensure all sensitive data uses this"
+      },
+      {
+        "id": "RN-STORAGE-004",
+        "pattern": "realm\\.open|new\\s+Realm\\(",
+        "severity": "low",
+        "title": "Realm Database Usage",
+        "description": "Realm database detected. Ensure encryption is enabled.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Enable Realm encryption for sensitive data"
+      },
+      {
+        "id": "RN-STORAGE-005",
+        "pattern": "SQLite|expo-sqlite|react-native-sqlite",
+        "severity": "low",
+        "title": "SQLite Database Usage",
+        "description": "SQLite database detected. Ensure encryption is enabled.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Use SQLCipher for encrypted SQLite storage"
+      }
+    ],
+    "network": [
+      {
+        "id": "RN-NET-001",
+        "pattern": "http://(?!localhost|127\\.0\\.0\\.1|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01]))",
+        "severity": "high",
+        "title": "Insecure HTTP Connection",
+        "description": "Application uses unencrypted HTTP connection",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Use HTTPS for all network communications"
+      },
+      {
+        "id": "RN-NET-002",
+        "pattern": "rejectUnauthorized\\s*:\\s*false",
+        "severity": "critical",
+        "title": "SSL Certificate Validation Disabled",
+        "description": "SSL validation disabled - vulnerable to MITM attacks",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Enable SSL validation and implement certificate pinning"
+      },
+      {
+        "id": "RN-NET-003",
+        "pattern": "fetch\\s*\\([^)]*\\{[^}]*mode\\s*:\\s*['\"]no-cors['\"]",
+        "severity": "medium",
+        "title": "No-CORS Mode Detected",
+        "description": "Fetch with no-cors mode may leak sensitive data",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Review CORS configuration and data exposure"
+      },
+      {
+        "id": "RN-NET-004",
+        "pattern": "XMLHttpRequest|XHR",
+        "severity": "info",
+        "title": "XMLHttpRequest Usage",
+        "description": "Legacy XHR detected. Consider using fetch API.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Use fetch API with proper error handling"
+      }
+    ],
+    "authentication": [
+      {
+        "id": "RN-AUTH-001",
+        "pattern": "biometrics|fingerprint|faceId|touchId|BiometricPrompt",
+        "severity": "info",
+        "title": "Biometric Authentication",
+        "description": "Biometric authentication implementation detected",
+        "owaspCategory": "M4: Insecure Authentication",
+        "recommendation": "Ensure proper fallback and secure implementation"
+      }
+    ],
+    "logging": [
+      {
+        "id": "RN-LOG-001",
+        "pattern": "console\\.(log|debug|info|warn)\\s*\\([^)]*(?:password|token|secret|key|auth)",
+        "severity": "high",
+        "title": "Sensitive Data in Logs",
+        "description": "Potentially sensitive data being logged",
+        "owaspCategory": "M9: Reverse Engineering",
+        "recommendation": "Remove sensitive data from console logs"
+      },
+      {
+        "id": "RN-LOG-002",
+        "pattern": "__DEV__\\s*&&\\s*console",
+        "severity": "info",
+        "title": "Development-Only Logging",
+        "description": "Conditional logging for development detected",
+        "owaspCategory": "M9: Reverse Engineering",
+        "recommendation": "Good practice - ensure __DEV__ is false in production"
+      },
+      {
+        "id": "RN-LOG-003",
+        "pattern": "react-native-logs|bugsnag|sentry|crashlytics",
+        "severity": "info",
+        "title": "Logging/Crash Reporting Library",
+        "description": "Third-party logging or crash reporting detected",
+        "owaspCategory": "M9: Reverse Engineering",
+        "recommendation": "Ensure no sensitive data is sent to these services"
+      }
+    ],
+    "webview": [
+      {
+        "id": "RN-WV-001",
+        "pattern": "javaScriptEnabled\\s*[=:]\\s*true",
+        "severity": "medium",
+        "title": "WebView JavaScript Enabled",
+        "description": "WebView has JavaScript enabled - potential XSS risk",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Disable JavaScript if not required, sanitize inputs"
+      },
+      {
+        "id": "RN-WV-002",
+        "pattern": "allowFileAccess\\s*[=:]\\s*true",
+        "severity": "high",
+        "title": "WebView File Access Enabled",
+        "description": "WebView can access local files - security risk",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Disable file access unless absolutely necessary"
+      },
+      {
+        "id": "RN-WV-003",
+        "pattern": "mixedContentMode\\s*[=:]\\s*['\"]always['\"]",
+        "severity": "high",
+        "title": "WebView Mixed Content Allowed",
+        "description": "WebView allows mixed HTTP/HTTPS content",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Set mixedContentMode to 'never' for security"
+      },
+      {
+        "id": "RN-WV-004",
+        "pattern": "onMessage|injectJavaScript|postMessage",
+        "severity": "medium",
+        "title": "WebView Bridge Communication",
+        "description": "JavaScript bridge detected - validate all messages",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Validate and sanitize all bridge communications"
+      }
+    ],
+    "deeplink": [
+      {
+        "id": "RN-DL-001",
+        "pattern": "Linking\\.(addEventListener|openURL|getInitialURL)",
+        "severity": "medium",
+        "title": "Deep Link Handling",
+        "description": "Deep link handling detected - validate all URLs",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Validate and sanitize all deep link parameters"
+      },
+      {
+        "id": "RN-DL-002",
+        "pattern": "navigation\\.navigate\\s*\\([^,]+,\\s*params",
+        "severity": "low",
+        "title": "Navigation with Parameters",
+        "description": "Navigation passes parameters - ensure validation",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Validate navigation parameters before use"
+      }
+    ]
+  },
+
+  "hermes": {
+    "detected": {
+      "severity": "info",
+      "title": "Hermes Bytecode Detected",
+      "description": "The React Native bundle is compiled with Hermes bytecode, which limits static analysis capabilities.",
+      "owaspCategory": "M9: Reverse Engineering",
+      "recommendation": "Use hermes-dec or hbctool for decompilation analysis",
+      "tools": [
+        "hbctool - Hermes Bytecode Disassembler",
+        "hermes-dec - https://github.com/AKASats9/hermes-dec"
+      ],
+      "downloadable": true
+    }
+  },
+
+  "scoring": {
+    "severityWeights": {
+      "critical": 15,
+      "high": 10,
+      "medium": 5,
+      "low": 2,
+      "info": 0
+    },
+    "maxPenalty": {
+      "dependencies": 40,
+      "patterns": 50,
+      "hermes": 5
+    }
+  }
+}

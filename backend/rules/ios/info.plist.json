@@ -1,0 +1,58 @@
+[
+  {
+    "id": "IOS_ATS_ARBITRARY_LOADS",
+    "platform": "IOS",
+    "file": "Info.plist",
+    "severity": "HIGH",
+    "flag": "NSAllowsArbitraryLoads",
+    "description": "La aplicación permite conexiones HTTP inseguras",
+    "recommendation": "Deshabilitar NSAllowsArbitraryLoads y usar HTTPS",
+    "location": "NSAppTransportSecurity",
+    "when": {
+      "type": "plist_key",
+      "key": "NSAppTransportSecurity.NSAllowsArbitraryLoads",
+      "operator": "equals",
+      "value": true
+    },
+    "evidence": {
+      "search": "NSAllowsArbitraryLoads"
+    }
+  },
+  {
+    "id": "IOS_FILE_SHARING",
+    "platform": "IOS",
+    "file": "Info.plist",
+    "severity": "MEDIUM",
+    "flag": "UIFileSharingEnabled",
+    "description": "Los archivos de la app son accesibles vía iTunes File Sharing",
+    "recommendation": "Deshabilitar UIFileSharingEnabled si no es necesario",
+    "location": "root",
+    "when": {
+      "type": "plist_key",
+      "key": "UIFileSharingEnabled",
+      "operator": "equals",
+      "value": true
+    },
+    "evidence": {
+      "search": "UIFileSharingEnabled"
+    }
+  },
+  {
+    "id": "IOS_BACKGROUND_MODES",
+    "platform": "IOS",
+    "file": "Info.plist",
+    "severity": "LOW",
+    "flag": "UIBackgroundModes",
+    "description": "La aplicación declara ejecución en background",
+    "recommendation": "Verificar que los background modes sean estrictamente necesarios",
+    "location": "root",
+    "when": {
+      "type": "plist_key",
+      "key": "UIBackgroundModes",
+      "operator": "exists"
+    },
+    "evidence": {
+      "search": "UIBackgroundModes"
+    }
+  }
+]

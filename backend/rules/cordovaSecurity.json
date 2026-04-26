@@ -1,0 +1,251 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-01",
+  "description": "Security rules for Cordova app analysis",
+
+  "dependencies": [
+    {
+      "id": "CORDOVA-DEP-001",
+      "package": "cordova-plugin-ionic-webview",
+      "vulnerableVersions": "<5.0.0",
+      "severity": "high",
+      "cve": null,
+      "title": "WebView Vulnerabilities",
+      "description": "Older versions may expose insecure WebView behaviors",
+      "recommendation": "Upgrade to 5.0.0 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    },
+    {
+      "id": "CORDOVA-DEP-002",
+      "package": "cordova-plugin-file",
+      "vulnerableVersions": "<6.0.2",
+      "severity": "medium",
+      "cve": null,
+      "title": "File Plugin Security Issues",
+      "description": "Older versions may allow unintended file access",
+      "recommendation": "Upgrade to 6.0.2 or higher",
+      "owaspCategory": "M1: Improper Platform Usage"
+    },
+    {
+      "id": "CORDOVA-DEP-003",
+      "package": "cordova-plugin-inappbrowser",
+      "vulnerableVersions": "<5.0.0",
+      "severity": "high",
+      "cve": null,
+      "title": "InAppBrowser Vulnerabilities",
+      "description": "Older versions may allow JS injection in in-app browser",
+      "recommendation": "Upgrade to 5.0.0 or higher",
+      "owaspCategory": "M7: Client Code Quality"
+    }
+  ],
+
+  "patterns": {
+    "crypto": [
+     {
+        "id": "CORD-CRYPTO-001",
+        "pattern": "\\.(encrypt|decrypt)\\s*\\(",
+        "severity": "medium",
+        "title": "Encryption/Decryption Operation",
+        "description": "Cryptographic operation detected. Verify proper key management.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Ensure strong algorithms (AES-256) and secure key storage"
+      },
+      {
+        "id": "CORD-CRYPTO-002",
+        "pattern": "\\.(md5|MD5)\\s*\\(",
+        "severity": "high",
+        "title": "Weak Hash Algorithm (MD5)",
+        "description": "MD5 is cryptographically broken",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use SHA-256 or stronger hash algorithms"
+      },
+      {
+        "id": "CORD-CRYPTO-003",
+        "pattern": "\\.(sha1|SHA1)\\s*\\(",
+        "severity": "medium",
+        "title": "Weak Hash Algorithm (SHA1)",
+        "description": "SHA1 is deprecated for security purposes",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use SHA-256 or stronger hash algorithms"
+      },
+      {
+        "id": "CORD-CRYPTO-004",
+        "pattern": "createCipher\\s*\\(\\s*['\"]?(des|DES|3des|rc4|RC4)",
+        "severity": "critical",
+        "title": "Weak Encryption Algorithm",
+        "description": "DES, 3DES, and RC4 are deprecated encryption algorithms",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Use AES-256 for symmetric encryption"
+      },
+      {
+        "id": "CORD-CRYPTO-005",
+        "pattern": "CryptoJS\\.enc|CryptoJS\\.AES\\.encrypt|CryptoJS\\.AES\\.decrypt|AES\\.encrypt|AES\\.decrypt|EncryptionHelper\\.",
+        "severity": "info",
+        "title": "CryptoJS or Custom Encryption Helper Detected",
+        "description": "Se ha detectado el uso de CryptoJS o de una clase personalizada de cifrado. Requiere revisión manual de gestión de claves.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Verifica que las claves no estén hardcodeadas y que se use un almacenamiento seguro (Keystore/Keychain)."
+      }
+    ],
+    "business_logic": [
+    {
+      "id": "CORD-BIZ-001",
+      "pattern": "(total|price|amount|quantity)\\s*[:=].*(document\\.get|\\$\\(['\"]#|\\.val\\(\\))",
+      "severity": "critical",
+      "title": "Client-Side Price/Amount Calculation",
+      "description": "Se detectó el cálculo de montos o precios directamente desde el DOM (HTML). Un atacante puede modificar el HTML para cambiar el precio antes de enviarlo al servidor.",
+      "owaspCategory": "M7: Client Code Quality",
+      "recommendation": "Calcula siempre los totales en el servidor basándote en los IDs de producto, nunca confíes en el precio enviado por el cliente."
+    },
+    {
+      "id": "CORD-BIZ-002",
+      "pattern": "isPremium|hasSubscription|isVip|trialExpired\\s*=",
+      "severity": "high",
+      "title": "Local Feature Toggling",
+      "description": "Banderas de estado premium detectadas en el cliente. Son fácilmente modificables mediante la consola o inyección de scripts.",
+      "owaspCategory": "M4: Insufficient Authentication/Authorization",
+      "recommendation": "Verifica el estado de la suscripción mediante el backend y usa recibos firmados (In-App Purchase) para validar localmente."
+    },
+    {
+      "id": "CORD-BIZ-003",
+      "pattern": "navigate\\(['\"]success['\"]\\)|goToStep\\([0-9]+\\)|showPage\\(['\"]confirmation['\"]\\)",
+      "severity": "medium",
+      "title": "Predictable Sequential Logic",
+      "description": "El flujo de la aplicación (pasos de pago o registro) puede ser forzado saltándose pasos intermedios.",
+      "owaspCategory": "Business Logic Error",
+      "recommendation": "Implementa validaciones de estado en el servidor para asegurar que el usuario ha completado el paso anterior legalmente."
+    },
+    {
+      "id": "CORD-BIZ-004",
+      "pattern": "handleOpenURL\\s*.*[?&](action|cmd|do)=",
+      "severity": "high",
+      "title": "Sensitive Action via Deep Link",
+      "description": "Se detectó la ejecución de comandos o acciones críticas directamente desde una URL (Deep Link) sin autenticación adicional.",
+      "owaspCategory": "M1: Improper Platform Usage",
+      "recommendation": "Nunca permitas acciones de escritura (transferencias, borrados) mediante Deep Links sin pedir el PIN o biometría del usuario."
+    },
+    {
+      "id": "CORD-BIZ-005",
+      "pattern": "JSON\\.parse\\s*\\(\\s*localStorage\\.getItem\\s*\\(.*\\)\\s*\\)\\.(id|userId|account)",
+      "severity": "medium",
+      "title": "Insecure ID Reference from Storage",
+      "description": "La app usa IDs guardados en LocalStorage para realizar peticiones al servidor. Un usuario puede cambiar su 'userId' para consultar datos de otro usuario.",
+      "owaspCategory": "M4: Insufficient Authentication/Authorization",
+      "recommendation": "El servidor debe obtener el ID del usuario desde el token de sesión (JWT) y no desde los parámetros enviados por el cliente."
+    }
+  ],
+    "storage": [
+      {
+        "id": "CORD-STORAGE-001",
+        "pattern": "localStorage\\.(setItem|getItem)\\s*\\(",
+        "severity": "medium",
+        "title": "LocalStorage Usage",
+        "description": "localStorage is not secure for sensitive data",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Use secure storage plugins for Cordova"
+      },
+      {
+        "id": "CORD-STORAGE-002",
+        "pattern": "window\\.sqlitePlugin|cordova\\.plugins\\.sqlite",
+        "severity": "low",
+        "title": "SQLite Usage",
+        "description": "SQLite database detected. Ensure encryption is enabled.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Use SQLCipher or encrypted SQLite storage"
+      },
+      {
+        "id": "CORD-STORAGE-003",
+        "pattern": "cordova\\.file\\.(externalRootDirectory|externalDataDirectory)",
+        "severity": "high",
+        "title": "Unsafe External Storage Usage",
+        "description": "El almacenamiento externo es legible por otras apps en Android.",
+        "owaspCategory": "M2: Insecure Data Storage"
+      }
+    ],
+    "network": [
+      {
+        "id": "CORD-NET-001",
+        "pattern": "http://(?!localhost|127\\.0\\.0\\.1|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01]))",
+        "severity": "high",
+        "title": "Insecure HTTP Connection",
+        "description": "Application uses unencrypted HTTP connection",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Use HTTPS for all network communications"
+      },
+      {
+        "id": "CORD-NET-002",
+        "pattern": "rejectUnauthorized\\s*:\\s*false",
+        "severity": "critical",
+        "title": "SSL Certificate Validation Disabled",
+        "description": "SSL validation disabled - vulnerable to MITM attacks",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Enable SSL validation and implement certificate pinning"
+      }
+    ],
+    "logging": [
+      {
+        "id": "CORD-LOG-001",
+        "pattern": "console\\.(log|debug|info|warn)\\s*\\([^)]*(?:password|token|secret|key|auth)",
+        "severity": "high",
+        "title": "Sensitive Data in Logs",
+        "description": "Potentially sensitive data being logged",
+        "owaspCategory": "M9: Reverse Engineering",
+        "recommendation": "Remove sensitive data from console logs"
+      }
+    ],
+    "webview": [
+      {
+        "id": "CORD-WV-001",
+        "pattern": "allowFileAccess\\s*[=:]\\s*true",
+        "severity": "high",
+        "title": "WebView File Access Enabled",
+        "description": "WebView can access local files - security risk",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Disable file access unless absolutely necessary"
+      }
+    ],
+    "injection": [
+      {
+        "id": "CORD-INJ-001",
+        "pattern": "eval\\s*\\(|new\\s+Function\\s*\\(|\\.executeScript\\s*\\(",
+        "severity": "high",
+        "title": "Dynamic Code Injection",
+        "description": "Ejecución de código dinámico detectada. Riesgo alto de XSS y compromiso de la WebView.",
+        "owaspCategory": "M7: Client Code Quality"
+      },
+      {
+        "id": "CORD-INJ-002",
+        "pattern": "executeSql\\s*\\(\\s*[\"`'].*\\+.*[\"`']",
+        "severity": "high",
+        "title": "SQL Injection Risk",
+        "description": "Concatenación de variables en consultas SQL locales.",
+        "owaspCategory": "M7: Client Code Quality"
+      }
+    ],
+    "deeplink": [
+      {
+        "id": "CORD-DL-001",
+        "pattern": "handleOpenURL|universalLinksPlugin",
+        "severity": "medium",
+        "title": "Deep Link Handling",
+        "description": "Deep link handling detected - validate all URLs",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Validate and sanitize all deep link parameters"
+      }
+    ]
+  },
+
+  "scoring": {
+    "severityWeights": {
+      "critical": 15,
+      "high": 10,
+      "medium": 5,
+      "low": 2,
+      "info": 0
+    },
+    "maxPenalty": {
+      "dependencies": 40,
+      "patterns": 50
+    }
+  }
+}

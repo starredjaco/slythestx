@@ -1,0 +1,12 @@
+services:
+  backend:
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+
+  worker:
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    devices:
+      - /dev/bus/usb:/dev/bus/usb

@@ -1,0 +1,946 @@
+{
+  "version": "1.1.0",
+  "source": "Full Android Native Security Suite",
+  "patterns": {
+    "network": [
+      {
+        "id": "AND-NET-001",
+        "pattern": "http://",
+        "severity": "medium",
+        "title": "Cleartext HTTP URL",
+        "description": "URL sin cifrar detectada en el código.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Usa HTTPS para todas las comunicaciones."
+      },
+      {
+        "id": "AND-NET-002",
+        "pattern": "setHostnameVerifier\\(.*?ALLOW_ALL",
+        "severity": "critical",
+        "title": "Hostname Verification Disabled",
+        "description": "Verificación de hostname deshabilitada permite MITM.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Nunca deshabilites la verificación de hostname."
+      },
+      {
+        "id": "AND-NET-003",
+        "pattern": "Proxy\\.NO_PROXY",
+        "severity": "info",
+        "title": "Explicit Proxy Bypass",
+        "description": "La app ignora la configuración de proxy del sistema.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Permite que el sistema maneje el proxy."
+      },
+      {
+        "id": "AND-NET-004",
+        "pattern": "ALLOW_ALL_HOSTNAME_VERIFIER",
+        "severity": "critical",
+        "title": "Allow All Hostname Verifier",
+        "description": "Acepta cualquier host sin importar el certificado.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Usa STRICT_HOSTNAME_VERIFIER."
+      },
+      {
+        "id": "AND-NET-005",
+        "pattern": "TrustAllCertificates|TrustAllSSL|DisableSSL",
+        "severity": "critical",
+        "title": "SSL/TLS Validation Disabled",
+        "description": "Validación SSL completamente deshabilitada.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Nunca deshabilites la validación SSL."
+      },
+      {
+        "id": "AND-NET-006",
+        "pattern": "X509TrustManager.*checkServerTrusted.*\\{\\s*\\}",
+        "severity": "critical",
+        "title": "Empty TrustManager",
+        "description": "Implementación que confía en cualquier certificado.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Implementa validación real."
+      },
+      {
+        "id": "AND-NET-007",
+        "pattern": "checkServerTrusted\\(\\s*X509Certificate\\[\\]\\s*chain",
+        "severity": "info",
+        "title": "Custom SSL Validation",
+        "description": "Lógica personalizada para validar certificados.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Audita manualmente la rigurosidad."
+      },
+      {
+        "id": "AND-NET-008",
+        "pattern": "addHeader\\(\\s*['\"]Authorization['\"]",
+        "severity": "info",
+        "title": "Auth Header Detected",
+        "description": "Inyección de credenciales en cabeceras.",
+        "owaspCategory": "M4: Insufficient Authentication",
+        "recommendation": "Verifica que no viajen sobre HTTP."
+      }
+    ],
+    "crypto": [
+      {
+        "id": "AND-CRY-001",
+        "pattern": "Cipher\\.getInstance\\(\\s*['\"]AES/ECB/",
+        "severity": "critical",
+        "title": "Insecure AES Mode (ECB)",
+        "description": "ECB no usa IV, lo que lo hace determinista.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Cambia a AES/GCM/NoPadding."
+      },
+      {
+        "id": "AND-CRY-002",
+        "pattern": "MessageDigest\\.getInstance\\(\\s*['\"]MD5['\"]",
+        "severity": "high",
+        "title": "Weak Hash Algorithm (MD5)",
+        "description": "MD5 es propenso a colisiones.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Utiliza SHA-256."
+      },
+      {
+        "id": "AND-CRY-003",
+        "pattern": "MessageDigest\\.getInstance\\(\\s*['\"]SHA-1['\"]",
+        "severity": "high",
+        "title": "Weak Hash Algorithm (SHA-1)",
+        "description": "SHA-1 tiene debilidades criptográficas.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Migra a SHA-256."
+      },
+      {
+        "id": "AND-CRY-004",
+        "pattern": "Cipher\\.getInstance\\(\\s*['\"]DES/",
+        "severity": "critical",
+        "title": "Weak Encryption (DES)",
+        "description": "Llave de 56 bits vulnerable a fuerza bruta.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa AES-256."
+      },
+      {
+        "id": "AND-CRY-005",
+        "pattern": "new\\s+SecretKeySpec\\(\\s*.*\\.getBytes\\(\\)",
+        "severity": "high",
+        "title": "Hardcoded Key",
+        "description": "Clave de cifrado escrita en el código.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa Android KeyStore."
+      },
+      {
+        "id": "AND-CRY-006",
+        "pattern": "SecureRandom\\.setSeed\\(",
+        "severity": "critical",
+        "title": "Static PRNG Seed",
+        "description": "Reducción de entropía al forzar semilla.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Deja que el sistema inicialice la semilla."
+      },
+      {
+        "id": "AND-CRY-007",
+        "pattern": "PBEKeySpec\\(\\s*.*,\\s*.*,\\s*([0-9]{1,3})\\s*,",
+        "severity": "medium",
+        "title": "Low PBE Iterations",
+        "description": "Pocas iteraciones facilitan fuerza bruta.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa al menos 10,000."
+      },
+      {
+        "id": "AND-CRY-008",
+        "pattern": "new\\s+IvParameterSpec\\(\\s*['\"].{1,16}['\"]",
+        "severity": "high",
+        "title": "Hardcoded IV",
+        "description": "IV estático rompe la seguridad del cifrado.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Genera IV aleatorios."
+      },
+      {
+        "id": "AND-CRY-009",
+        "pattern": "RSA/NONE/NoPadding",
+        "severity": "critical",
+        "title": "RSA without Padding",
+        "description": "RSA sin padding es vulnerable matemáticamente.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa OAEP con SHA-256."
+      },
+      {
+        "id": "AND-CRY-010",
+        "pattern": "DESede/",
+        "severity": "high",
+        "title": "Weak Encryption (TripleDES)",
+        "description": "Algoritmo legado con tamaño de bloque pequeño.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa AES."
+      },
+      {
+        "id": "AND-CRY-011",
+        "pattern": "KeyPairGenerator.*initialize\\(\\s*(512|1024)",
+        "severity": "high",
+        "title": "Short RSA Key Size",
+        "description": "Llaves RSA menores a 2048 bits son inseguras.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa 2048 o 4096 bits."
+      },
+      {
+        "id": "AND-CRY-012",
+        "pattern": "Blowfish",
+        "severity": "high",
+        "title": "Weak Algorithm Blowfish",
+        "description": "Superado por AES en seguridad.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Sustituir por AES."
+      },
+      {
+        "id": "AND-CRY-013",
+        "pattern": "RC4|ARCFOUR",
+        "severity": "critical",
+        "title": "Weak Algorithm RC4",
+        "description": "RC4 tiene múltiples vulnerabilidades conocidas.",
+        "owaspCategory": "M5: Insufficient Cryptography",
+        "recommendation": "Usa AES."
+      }
+    ],
+    "storage": [
+      {
+        "id": "AND-STO-001",
+        "pattern": "MODE_WORLD_READABLE",
+        "severity": "critical",
+        "title": "World Readable Storage",
+        "description": "Archivos accesibles por cualquier app.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa MODE_PRIVATE."
+      },
+      {
+        "id": "AND-STO-002",
+        "pattern": "MODE_WORLD_WRITEABLE",
+        "severity": "critical",
+        "title": "World Writeable Storage",
+        "description": "Archivos modificables por terceros.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa MODE_PRIVATE."
+      },
+      {
+        "id": "AND-STO-003",
+        "pattern": "getExternalStorageDirectory",
+        "severity": "high",
+        "title": "Insecure External Storage",
+        "description": "Almacenamiento global sin sandbox.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa almacenamiento interno."
+      },
+      {
+        "id": "AND-STO-004",
+        "pattern": "SQLiteDatabase.*null",
+        "severity": "medium",
+        "title": "Unencrypted SQLite",
+        "description": "BD local sin cifrado expuesta.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Implementa SQLCipher."
+      },
+      {
+        "id": "AND-STO-005",
+        "pattern": "openFileOutput\\(.*?\\d",
+        "severity": "high",
+        "title": "Insecure File Flags",
+        "description": "Flags que exponen archivos al sistema.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa modo 0."
+      },
+      {
+        "id": "AND-STO-006",
+        "pattern": "createTempFile",
+        "severity": "low",
+        "title": "Insecure Temp File",
+        "description": "Ficheros temporales expuestos.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Bórralos tras su uso."
+      },
+      {
+        "id": "AND-STO-007",
+        "pattern": "getExternalStoragePublicDirectory",
+        "severity": "high",
+        "title": "Public Storage Exposure",
+        "description": "Uso de directorios públicos para datos de app.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa Scoped Storage."
+      },
+      {
+        "id": "AND-STO-008",
+        "pattern": "EncryptedSharedPreferences\\.create",
+        "severity": "info",
+        "title": "Encrypted Storage",
+        "description": "Uso de almacenamiento cifrado Jetpack.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Gestiona MasterKey en KeyStore."
+      },
+      {
+        "id": "AND-STO-009",
+        "pattern": "Realm\\.getInstance",
+        "severity": "info",
+        "title": "Realm DB Usage",
+        "description": "Uso de base de datos Realm.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Verifica encryptionKey."
+      },
+      {
+        "id": "AND-STO-010",
+        "pattern": "getCacheDir\\(\\)",
+        "severity": "low",
+        "title": "Cache Directory",
+        "description": "Datos en caché no cifrados.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "No guardes datos sensibles en caché."
+      },
+      {
+        "id": "AND-STO-011",
+        "pattern": "getSharedPreferences.*MODE_PRIVATE",
+        "severity": "info",
+        "title": "SharedPreferences Usage",
+        "description": "Uso de SharedPreferences sin cifrado.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa EncryptedSharedPreferences para datos sensibles."
+      }
+    ],
+    "pathtraversal": [
+      {
+        "id": "AND-PT-001",
+        "pattern": "\\.\\./",
+        "severity": "critical",
+        "title": "Path Traversal Pattern",
+        "description": "Patrón de traversal detectado en string literal.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida y sanitiza todas las rutas de archivo."
+      },
+      {
+        "id": "AND-PT-002",
+        "pattern": "new\\s+File\\(.*?\\+.*?\\)",
+        "severity": "high",
+        "title": "Dynamic File Path Construction",
+        "description": "Construcción de rutas con concatenación puede permitir traversal.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa File.getCanonicalPath() y valida contra directorio base."
+      },
+      {
+        "id": "AND-PT-003",
+        "pattern": "openFileInput\\(.*?\\+",
+        "severity": "high",
+        "title": "Dynamic File Input",
+        "description": "Apertura de archivo con nombre dinámico.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida el nombre de archivo contra whitelist."
+      },
+      {
+        "id": "AND-PT-004",
+        "pattern": "getCanonicalPath|getAbsolutePath",
+        "severity": "info",
+        "title": "Path Canonicalization",
+        "description": "Uso de canonicalización de rutas detectado.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Verifica que se compare contra directorio permitido."
+      },
+      {
+        "id": "AND-PT-005",
+        "pattern": "FileProvider.*getUriForFile",
+        "severity": "medium",
+        "title": "FileProvider Usage",
+        "description": "Exposición de archivos via FileProvider.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Verifica configuración de paths en file_paths.xml."
+      },
+      {
+        "id": "AND-PT-006",
+        "pattern": "Uri\\.parse.*file://",
+        "severity": "high",
+        "title": "File URI Parsing",
+        "description": "Parsing de URIs de archivo puede ser manipulado.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa FileProvider en lugar de file:// URIs."
+      },
+      {
+        "id": "AND-PT-007",
+        "pattern": "openInputStream.*getIntent\\(\\)",
+        "severity": "critical",
+        "title": "Intent File Access",
+        "description": "Acceso a archivo desde Intent sin validación.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida URI del Intent antes de acceder."
+      }
+    ],
+    "ipc": [
+      {
+        "id": "AND-IPC-001",
+        "pattern": "FLAG_MUTABLE",
+        "severity": "high",
+        "title": "Mutable PendingIntent",
+        "description": "Permite escalada de privilegios por terceros.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa FLAG_IMMUTABLE."
+      },
+      {
+        "id": "AND-IPC-002",
+        "pattern": "sendBroadcast\\(",
+        "severity": "medium",
+        "title": "Unprotected Broadcast",
+        "description": "Emisión de datos sin restricciones.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa LocalBroadcastManager."
+      },
+      {
+        "id": "AND-IPC-003",
+        "pattern": "Intent\\.parseUri",
+        "severity": "high",
+        "title": "Intent Scheme Hijacking",
+        "description": "Parsear URIs permite ejecución arbitraria.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida esquemas estrictamente."
+      },
+      {
+        "id": "AND-IPC-004",
+        "pattern": "sendStickyBroadcast",
+        "severity": "high",
+        "title": "Sticky Broadcast",
+        "description": "Deprecado y permite lectura por cualquier app.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Evita su uso."
+      },
+      {
+        "id": "AND-IPC-005",
+        "pattern": "registerReceiver\\(",
+        "severity": "medium",
+        "title": "Dynamic Broadcast Receiver",
+        "description": "Registro en runtime sin restricciones.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Restringe emisores permitidos."
+      },
+      {
+        "id": "AND-IPC-006",
+        "pattern": "startActivity\\(new\\s+Intent\\(['\"].*['\"]\\)\\)",
+        "severity": "medium",
+        "title": "Implicit Intent",
+        "description": "Vulnerable a interceptación por apps maliciosas.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa Intents explícitos."
+      },
+      {
+        "id": "AND-IPC-007",
+        "pattern": "getIntent\\(\\)\\.get.*Extra",
+        "severity": "medium",
+        "title": "Unvalidated Intent Data",
+        "description": "Datos de Intent usados sin validación.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida todos los extras del Intent."
+      }
+    ],
+    "webview": [
+      {
+        "id": "AND-WV-001",
+        "pattern": "setJavaScriptEnabled\\(true",
+        "severity": "medium",
+        "title": "JS Enabled",
+        "description": "Aumenta la superficie de ataque XSS.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Desactiva JS si no es vital."
+      },
+      {
+        "id": "AND-WV-002",
+        "pattern": "addJavascriptInterface",
+        "severity": "critical",
+        "title": "WebView Bridge RCE",
+        "description": "Expone métodos Java a JS.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Usa @JavascriptInterface y minSdkVersion >= 17."
+      },
+      {
+        "id": "AND-WV-003",
+        "pattern": "setAllowFileAccess\\(true",
+        "severity": "high",
+        "title": "WebView File Access",
+        "description": "Permite lectura de archivos locales.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Desactiva acceso local."
+      },
+      {
+        "id": "AND-WV-004",
+        "pattern": "handler\\.proceed\\(\\)",
+        "severity": "critical",
+        "title": "Ignoring SSL Errors",
+        "description": "Ignora errores SSL facilitando MITM.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Nunca uses proceed() en producción."
+      },
+      {
+        "id": "AND-WV-005",
+        "pattern": "setWebContentsDebuggingEnabled\\(true",
+        "severity": "high",
+        "title": "WebView Debugging",
+        "description": "Permite inspección remota en release.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Desactiva en builds finales."
+      },
+      {
+        "id": "AND-WV-006",
+        "pattern": "MIXED_CONTENT_ALWAYS_ALLOW",
+        "severity": "high",
+        "title": "Insecure Mixed Content",
+        "description": "Carga recursos HTTP en páginas HTTPS.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Usa NEVER_ALLOW."
+      },
+      {
+        "id": "AND-WV-007",
+        "pattern": "loadUrl\\(['\"]javascript:",
+        "severity": "high",
+        "title": "Inline JS Loading",
+        "description": "Ejecución dinámica de JS inyectado.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa evaluateJavascript()."
+      },
+      {
+        "id": "AND-WV-008",
+        "pattern": "setAllowUniversalAccessFromFileURLs\\(true",
+        "severity": "critical",
+        "title": "Universal File Access",
+        "description": "Permite acceso universal desde file:// URLs.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Nunca habilites esta opción."
+      },
+      {
+        "id": "AND-WV-009",
+        "pattern": "setAllowFileAccessFromFileURLs\\(true",
+        "severity": "critical",
+        "title": "File URL Cross-Access",
+        "description": "Permite que file:// acceda a otros archivos locales.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Deshabilita esta opción."
+      },
+      {
+        "id": "AND-WV-010",
+        "pattern": "loadUrl\\(.*?\\+",
+        "severity": "high",
+        "title": "Dynamic URL Loading",
+        "description": "Carga de URL construida dinámicamente puede permitir inyección.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Valida URLs antes de cargar."
+      },
+      {
+        "id": "AND-WV-011",
+        "pattern": "shouldOverrideUrlLoading.*return false",
+        "severity": "medium",
+        "title": "URL Override Disabled",
+        "description": "No se validan las navegaciones del WebView.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Implementa validación de URLs."
+      }
+    ],
+    "logging": [
+      {
+        "id": "AND-LOG-001",
+        "pattern": "Log\\.(v|d|i|w|e)\\(.*?(password|token|key|secret|credential|apikey|api_key)",
+        "severity": "high",
+        "title": "Sensitive Data in Logs",
+        "description": "Datos críticos en Logcat.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Remueve logs en producción."
+      },
+      {
+        "id": "AND-LOG-002",
+        "pattern": "printStackTrace\\(\\)",
+        "severity": "low",
+        "title": "Stack Trace Exposure",
+        "description": "Stack traces pueden revelar información interna.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa logging controlado."
+      },
+      {
+        "id": "AND-LOG-003",
+        "pattern": "System\\.out\\.println",
+        "severity": "low",
+        "title": "Standard Out Usage",
+        "description": "Los prints van directos al log del sistema.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa android.util.Log."
+      },
+      {
+        "id": "AND-LOG-004",
+        "pattern": "System\\.err\\.println",
+        "severity": "low",
+        "title": "Standard Error Usage",
+        "description": "Errores van directos al log del sistema.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa android.util.Log."
+      }
+    ],
+    "system": [
+      {
+        "id": "AND-SYS-001",
+        "pattern": "Runtime\\.getRuntime\\(\\)\\.exec",
+        "severity": "critical",
+        "title": "Command Execution",
+        "description": "Riesgo de inyección de comandos shell.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa APIs nativas."
+      },
+      {
+        "id": "AND-SYS-002",
+        "pattern": "DexClassLoader|PathClassLoader",
+        "severity": "high",
+        "title": "Dynamic Code Loading",
+        "description": "Carga de código externo es peligroso.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Verifica origen de archivos DEX."
+      },
+      {
+        "id": "AND-SYS-003",
+        "pattern": "ProcessBuilder",
+        "severity": "critical",
+        "title": "Process Builder",
+        "description": "Inicia procesos de OS directamente.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Evita comandos dinámicos."
+      },
+      {
+        "id": "AND-SYS-004",
+        "pattern": "System\\.loadLibrary",
+        "severity": "info",
+        "title": "Native Lib Loading",
+        "description": "Uso de JNI/Librerías nativas.",
+        "owaspCategory": "M9: Reverse Engineering",
+        "recommendation": "Protege .so con obfuscación."
+      },
+      {
+        "id": "AND-SYS-005",
+        "pattern": "Class\\.forName\\(",
+        "severity": "medium",
+        "title": "Reflection Usage",
+        "description": "Uso de reflection puede evadir controles.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Evita reflection con datos de usuario."
+      },
+      {
+        "id": "AND-SYS-006",
+        "pattern": "getMethod\\(|getDeclaredMethod\\(",
+        "severity": "medium",
+        "title": "Method Reflection",
+        "description": "Acceso reflectivo a métodos.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Valida nombres de métodos."
+      }
+    ],
+    "biometrics": [
+      {
+        "id": "AND-BIO-001",
+        "pattern": "authenticate\\(.*?promptInfo\\)",
+        "severity": "high",
+        "title": "Missing CryptoObject",
+        "description": "Autenticación biométrica manipulable sin criptografía.",
+        "owaspCategory": "M4: Insufficient Authentication",
+        "recommendation": "Vincula con CryptoObject."
+      },
+      {
+        "id": "AND-BIO-002",
+        "pattern": "FingerprintManager",
+        "severity": "medium",
+        "title": "Legacy Biometrics",
+        "description": "API obsoleta insegura en hardware moderno.",
+        "owaspCategory": "M4: Insufficient Authentication",
+        "recommendation": "Migra a BiometricPrompt."
+      },
+      {
+        "id": "AND-BIO-003",
+        "pattern": "setDeviceCredentialAllowed\\(true\\)",
+        "severity": "medium",
+        "title": "Device Credential Fallback",
+        "description": "Permite PIN/patrón como alternativa a biometría.",
+        "owaspCategory": "M4: Insufficient Authentication",
+        "recommendation": "Evalúa si el fallback es apropiado para tu caso."
+      }
+    ],
+    "contentprovider": [
+      {
+        "id": "AND-CP-001",
+        "pattern": "content://.*?/\\*",
+        "severity": "high",
+        "title": "CP Path Traversal",
+        "description": "Wildcards peligrosos en URIs.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida segmentos de URI."
+      },
+      {
+        "id": "AND-CP-002",
+        "pattern": "openFile.*?uri",
+        "severity": "high",
+        "title": "ContentProvider File Access",
+        "description": "Acceso a archivos via ContentProvider.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida URI contra path traversal."
+      },
+      {
+        "id": "AND-CP-003",
+        "pattern": "query\\(.*?selection.*?\\+",
+        "severity": "high",
+        "title": "ContentProvider SQL Injection",
+        "description": "Concatenación en query de ContentProvider.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa selectionArgs."
+      }
+    ],
+    "deeplink": [
+      {
+        "id": "AND-DL-001",
+        "pattern": "android:scheme=",
+        "severity": "info",
+        "title": "Deep Link Scheme",
+        "description": "App registra esquema de deep link.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida datos de deep links."
+      },
+      {
+        "id": "AND-DL-002",
+        "pattern": "getIntent\\(\\)\\.getData\\(\\)",
+        "severity": "medium",
+        "title": "Deep Link Data Access",
+        "description": "Acceso a datos de deep link sin validación visible.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida y sanitiza datos del URI."
+      },
+      {
+        "id": "AND-DL-003",
+        "pattern": "setData\\(Uri\\.parse",
+        "severity": "medium",
+        "title": "Dynamic URI Construction",
+        "description": "Construcción dinámica de URI para Intent.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Valida URIs antes de usarlos."
+      }
+    ],
+    "deviceid": [
+      {
+        "id": "AND-ID-001",
+        "pattern": "getAndroidId",
+        "severity": "medium",
+        "title": "Android ID Access",
+        "description": "Acceso a identificador único de dispositivo.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Usa identificadores de instancia."
+      },
+      {
+        "id": "AND-ID-002",
+        "pattern": "getDeviceId\\(\\)",
+        "severity": "high",
+        "title": "IMEI/MEID Access",
+        "description": "Acceso a IDs físicos únicos del hardware.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Evita IDs persistentes."
+      },
+      {
+        "id": "AND-ID-003",
+        "pattern": "getMacAddress",
+        "severity": "high",
+        "title": "MAC Address Access",
+        "description": "Acceso a dirección MAC del dispositivo.",
+        "owaspCategory": "Privacy",
+        "recommendation": "No uses MAC para identificación."
+      },
+      {
+        "id": "AND-ID-004",
+        "pattern": "getSerialNumber|getSerial\\(",
+        "severity": "high",
+        "title": "Serial Number Access",
+        "description": "Acceso al número de serie del dispositivo.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Evita identificadores de hardware."
+      }
+    ],
+    "sql": [
+      {
+        "id": "AND-SQL-001",
+        "pattern": "rawQuery\\(.*?\\+",
+        "severity": "critical",
+        "title": "SQL Injection",
+        "description": "Concatenación en SQL nativo.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa selectionArgs."
+      },
+      {
+        "id": "AND-SQL-002",
+        "pattern": "execSQL\\(.*?\\+",
+        "severity": "critical",
+        "title": "SQL Injection in execSQL",
+        "description": "Concatenación en execSQL permite inyección.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa queries parametrizadas."
+      },
+      {
+        "id": "AND-SQL-003",
+        "pattern": "compileStatement\\(.*?\\+",
+        "severity": "critical",
+        "title": "SQL Injection in Statement",
+        "description": "Concatenación en statement compilado.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa bindString/bindLong."
+      }
+    ],
+    "clipboard": [
+      {
+        "id": "AND-CLIP-001",
+        "pattern": "ClipboardManager.*setText|setPrimaryClip",
+        "severity": "medium",
+        "title": "Clipboard Write",
+        "description": "Escritura de datos al portapapeles.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "No copies datos sensibles al clipboard."
+      },
+      {
+        "id": "AND-CLIP-002",
+        "pattern": "getPrimaryClip|getText",
+        "severity": "info",
+        "title": "Clipboard Read",
+        "description": "Lectura del portapapeles.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Informa al usuario cuando leas clipboard."
+      }
+    ],
+    "screenshot": [
+      {
+        "id": "AND-SCR-001",
+        "pattern": "FLAG_SECURE",
+        "severity": "info",
+        "title": "Screenshot Protection",
+        "description": "Protección contra capturas activa.",
+        "owaspCategory": "M2: Insecure Data Storage",
+        "recommendation": "Usa en pantallas de pago."
+      },
+      {
+        "id": "AND-SCR-002",
+        "pattern": "onScreenshotTaken",
+        "severity": "info",
+        "title": "Screenshot Listener",
+        "description": "Detección de capturas del usuario.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Informa riesgos al usuario."
+      }
+    ],
+    "bluetooth": [
+      {
+        "id": "AND-BLU-001",
+        "pattern": "listenUsingInsecureRfcomm",
+        "severity": "high",
+        "title": "Insecure Bluetooth",
+        "description": "Canal sin cifrado ni autenticación.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Usa RFCOMM seguro."
+      },
+      {
+        "id": "AND-BLU-002",
+        "pattern": "createInsecureRfcommSocket",
+        "severity": "high",
+        "title": "Insecure Bluetooth Socket",
+        "description": "Socket Bluetooth sin seguridad.",
+        "owaspCategory": "M3: Insecure Communication",
+        "recommendation": "Usa createRfcommSocketToServiceRecord."
+      },
+      {
+        "id": "AND-BLU-003",
+        "pattern": "BluetoothAdapter\\.getDefaultAdapter",
+        "severity": "info",
+        "title": "BT Usage",
+        "description": "Uso de Bluetooth detectado.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Solicita permisos dinámicos."
+      }
+    ],
+    "serialization": [
+      {
+        "id": "AND-SER-001",
+        "pattern": "ObjectInputStream\\.readObject",
+        "severity": "high",
+        "title": "Insecure Deserialization",
+        "description": "RCE posible vía fuentes no confiables.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Usa JSON."
+      },
+      {
+        "id": "AND-SER-002",
+        "pattern": "readObject\\(.*?getIntent",
+        "severity": "critical",
+        "title": "Intent Deserialization",
+        "description": "Deserialización de datos de Intent.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Nunca deserializes datos de Intents externos."
+      },
+      {
+        "id": "AND-SER-003",
+        "pattern": "Parcelable.*createFromParcel",
+        "severity": "info",
+        "title": "Parcelable Usage",
+        "description": "Uso de interfaz Parcelable de Android.",
+        "owaspCategory": "M7: Client Code Quality",
+        "recommendation": "Valida datos deserializados."
+      }
+    ],
+    "nfc": [
+      {
+        "id": "AND-NFC-001",
+        "pattern": "NdefMessage",
+        "severity": "info",
+        "title": "NFC Usage",
+        "description": "App gestiona tags NFC.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Valida integridad de datos."
+      },
+      {
+        "id": "AND-NFC-002",
+        "pattern": "enableForegroundDispatch",
+        "severity": "low",
+        "title": "NFC Dispatch",
+        "description": "Prioriza lectura NFC frontal.",
+        "owaspCategory": "M1: Improper Platform Usage",
+        "recommendation": "Maneja errores de lectura."
+      }
+    ],
+    "location": [
+      {
+        "id": "AND-LOC-001",
+        "pattern": "getLastKnownLocation",
+        "severity": "info",
+        "title": "Location Access",
+        "description": "Acceso a última ubicación.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Usa permisos aproximados."
+      },
+      {
+        "id": "AND-LOC-002",
+        "pattern": "requestLocationUpdates",
+        "severity": "info",
+        "title": "Continuous Location",
+        "description": "Seguimiento continuo de ubicación.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Detén updates cuando no sean necesarios."
+      }
+    ],
+    "hardware": [
+      {
+        "id": "AND-HW-001",
+        "pattern": "Camera\\.open|camera2|CameraManager",
+        "severity": "info",
+        "title": "Camera Access",
+        "description": "Uso de cámara detectado.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Informa al usuario."
+      },
+      {
+        "id": "AND-HW-002",
+        "pattern": "AudioRecord|MediaRecorder",
+        "severity": "info",
+        "title": "Microphone Access",
+        "description": "Grabación de audio.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Usa indicadores visuales."
+      },
+      {
+        "id": "AND-HW-003",
+        "pattern": "SensorManager",
+        "severity": "info",
+        "title": "Sensor Access",
+        "description": "Acceso a acelerómetro/giroscopio.",
+        "owaspCategory": "Privacy",
+        "recommendation": "Riesgo de fingerprinting."
+      }
+    ]
+  }
+}

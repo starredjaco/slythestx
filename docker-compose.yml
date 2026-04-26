@@ -1,0 +1,105 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: slythestx-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mobile_security
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - slythestx-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: slythestx-redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - slythestx-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: slythestx-backend
+    privileged: true
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/mobile_security
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: "*"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - app_uploads:/app/uploads
+      - app_results:/app/analysis_results
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - slythestx-net
+    command: npm run dev
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: slythestx-worker
+    privileged: true
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/mobile_security
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - app_uploads:/app/uploads
+      - app_results:/app/analysis_results
+    depends_on:
+      - db
+      - redis
+      - backend
+    networks:
+      - slythestx-net
+    command: npm run worker
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: slythestx-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - slythestx-net
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_uploads:
+  app_results:
+
+networks:
+  slythestx-net:
+    driver: bridge

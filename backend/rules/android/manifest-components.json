@@ -1,0 +1,38 @@
+{
+  "name": "Android Exported Components",
+  "version": "1.0.0",
+  "description": "Vulnerabilities related to exported components",
+  "platform": "ANDROID",
+  "vulnerabilities": [
+    {
+      "id": "ANDROID-COMPONENT-001",
+      "title": "Exported Component Without Permission",
+      "description": "Un componente está exportado sin requerir permisos, permitiendo que cualquier app interactúe con él",
+      "severity": "HIGH",
+      "category": "Access Control",
+      "owasp_category": "M1: Improper Platform Usage",
+      "cwe_id": "CWE-926",
+      "recommendation": "Establecer android:exported=\"false\" o requerir un permiso personalizado",
+      "references": [
+        "https://developer.android.com/guide/topics/manifest/activity-element#exported"
+      ],
+      "pattern": {
+        "type": "attribute",
+        "attribute": "exported",
+        "value": true
+      }
+    },
+    {
+      "id": "ANDROID-COMPONENT-002",
+      "title": "Activity with Intent Filter Not Explicitly Exported",
+      "description": "Activity con intent-filter debe declarar explícitamente android:exported en Android 12+",
+      "severity": "MEDIUM",
+      "category": "Access Control",
+      "owasp_category": "M1: Improper Platform Usage",
+      "recommendation": "Declarar explícitamente android:exported=\"true\" o \"false\" en todos los componentes con intent-filter",
+      "conditions": {
+        "min_sdk": 31
+      }
+    }
+  ]
+}

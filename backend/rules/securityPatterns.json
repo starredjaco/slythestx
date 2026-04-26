@@ -1,0 +1,250 @@
+{
+  "version": "1.0.0",
+  "description": "Security measures detection rules for mobile applications",
+  "rules": {
+    "rootJailbreakDetection": {
+      "android": {
+        "codePatterns": [
+          "checkRoot",
+          "isRooted",
+          "detectRoot",
+          "RootBeer",
+          "Superuser.apk",
+          "test-keys",
+          "/system/xbin/su",
+          "/system/app/Superuser",
+          "com.noshufou.android.su",
+          "eu.chainfire.supersu"
+        ],
+        "libraryPatterns": ["rootbeer", "antiroot", "rootdetect"]
+      },
+      "ios": {
+        "binaryPatterns": [
+          "/Applications/Cydia.app",
+          "/Library/MobileSubstrate",
+          "/usr/sbin/sshd",
+          "cydia://",
+          "checkJailbreak",
+          "isJailbroken",
+          "detectJailbreak"
+        ]
+      },
+      "metadata": {
+        "androidType": "Root Detection",
+        "iosType": "Jailbreak Detection",
+        "descriptionDetected": "The app detects {type} to prevent running on compromised devices",
+        "descriptionNotDetected": "No {type} detection found",
+        "recommendationDetected": "Root/jailbreak detection is implemented",
+        "recommendationNotDetected": "Consider implementing root/jailbreak detection"
+      }
+    },
+    "emulatorDetection": {
+      "android": {
+        "codePatterns": [
+          "Build.FINGERPRINT",
+          "generic",
+          "goldfish",
+          "isEmulator",
+          "checkEmulator",
+          "detectEmulator",
+          "emulator",
+          "sdk_gphone"
+        ],
+        "libraryPatterns": ["emulator", "goldfish"]
+      },
+      "ios": {
+        "binaryPatterns": ["isSimulator", "checkSimulator", "i386", "x86_64"]
+      },
+      "metadata": {
+        "type": "Emulator/Simulator Detection",
+        "descriptionDetected": "The app detects if running on emulator/simulator",
+        "descriptionNotDetected": "No emulator/simulator detection found",
+        "recommendationDetected": "Emulator detection is implemented",
+        "recommendationNotDetected": "Consider implementing emulator detection"
+      }
+    },
+    "sslPinning": {
+      "android": {
+        "codePatterns": [
+          "CertificatePinner",
+          "TrustManager",
+          "X509TrustManager",
+          "checkServerTrusted",
+          "SSLContext",
+          "setPinningPolicy"
+        ],
+        "libraryPatterns": ["pinning", "certificate", "ssl"],
+        "configFiles": {
+          "networkSecurityConfig": {
+            "path": "res/xml/network_security_config.xml",
+            "indicators": ["<pin", "pin-set"]
+          }
+        }
+      },
+      "ios": {
+        "binaryPatterns": [
+          "NSURLSessionDelegate",
+          "didReceiveChallenge",
+          "SecTrustEvaluate",
+          "AFSecurityPolicy",
+          "pinnedCertificates",
+          "SSLPinningMode"
+        ]
+      },
+      "metadata": {
+        "type": "SSL Pinning",
+        "descriptionDetected": "SSL/TLS certificate pinning is implemented",
+        "descriptionNotDetected": "No SSL pinning detected",
+        "recommendationDetected": "SSL pinning is implemented",
+        "recommendationNotDetected": "Strongly recommend implementing SSL pinning"
+      }
+    },
+    "certificateTransparency": {
+      "common": {
+        "codePatterns": [
+          "CertificateTransparency",
+          "SCT",
+          "CTLog",
+          "SignedCertificateTimestamp"
+        ]
+      },
+      "metadata": {
+        "type": "Certificate Transparency",
+        "descriptionDetected": "Certificate Transparency validation is implemented",
+        "descriptionNotDetected": "No CT implementation detected",
+        "recommendationDetected": "CT validation is implemented",
+        "recommendationNotDetected": "Consider implementing CT validation"
+      }
+    },
+    "developerModeDetection": {
+      "android": {
+        "codePatterns": [
+          "DEVELOPMENT_SETTINGS_ENABLED",
+          "isDeveloperModeEnabled",
+          "checkDeveloperOptions",
+          "detectDeveloperMode"
+        ]
+      },
+      "ios": {
+        "applicable": false
+      },
+      "metadata": {
+        "type": "Developer Mode Detection",
+        "descriptionDetected": "Developer mode detection is implemented",
+        "descriptionNotDetected": "No developer mode detection found",
+        "recommendationDetected": "Developer mode detection is implemented",
+        "recommendationNotDetected": "Consider detecting developer mode"
+      }
+    },
+    "usbDebuggingDetection": {
+      "android": {
+        "codePatterns": [
+          "ADB_ENABLED",
+          "isAdbEnabled",
+          "checkUSBDebugging",
+          "detectAdb"
+        ]
+      },
+      "ios": {
+        "applicable": false
+      },
+      "metadata": {
+        "type": "USB Debugging Detection",
+        "descriptionDetected": "USB debugging detection is implemented",
+        "descriptionNotDetected": "No USB debugging detection found",
+        "recommendationDetected": "USB debugging detection is implemented",
+        "recommendationNotDetected": "Consider detecting USB debugging"
+      }
+    },
+    "antiTampering": {
+      "common": {
+        "codePatterns": [
+          "checkSignature",
+          "verifySignature",
+          "tamper",
+          "integrity",
+          "validateApk",
+          "GET_SIGNATURES",
+          "MessageDigest",
+          "CRC32",
+          "checksum"
+        ],
+        "libraryPatterns": ["integrity", "tamper", "signature"]
+      },
+      "metadata": {
+        "type": "Anti-Tampering",
+        "descriptionDetected": "Anti-tampering mechanisms are implemented",
+        "descriptionNotDetected": "No anti-tampering detected",
+        "recommendationDetected": "Anti-tampering protections are implemented",
+        "recommendationNotDetected": "Implement signature and integrity checks"
+      }
+    },
+    "rasp": {
+      "common": {
+        "codePatterns": [
+          "FREERASP",
+          "RuntimeApplicationSelfProtection",
+          "AppShielding",
+          "ThreatDetection",
+          "appsealing",
+          "arxan",
+          "guardsquare",
+          "dexguard",
+          "promon",
+          "verimatrix",
+          "appdome",
+          "onespan",
+          "trustonic",
+          "liapp"
+        ],
+        "libraryKeywords": [
+          "appsealing",
+          "arxan",
+          "guardsquare",
+          "dexguard",
+          "promon",
+          "verimatrix",
+          "appdome",
+          "onespan",
+          "trustonic",
+          "liapp"
+        ]
+      },
+      "metadata": {
+        "type": "RASP (Runtime Application Self-Protection)",
+        "descriptionDetected": "Commercial RASP solution is implemented",
+        "descriptionNotDetected": "No RASP solution detected",
+        "recommendationDetected": "RASP protection is implemented",
+        "recommendationNotDetected": "Consider using a RASP solution"
+      }
+    },
+    "obfuscation": {
+      "android": {
+        "codePatterns": ["proguard", "r8", "obfuscation"],
+        "obfuscatedClassThreshold": 20,
+        "obfuscatedClassPatterns": [
+          "[a-z].smali",
+          "[a-z][0-9]*.smali",
+          "[a-z].java",
+          "[a-z][0-9]*.java"
+        ]
+      },
+      "metadata": {
+        "type": "Code Obfuscation",
+        "descriptionDetected": "Code is obfuscated to prevent reverse engineering",
+        "descriptionNotDetected": "No code obfuscation detected",
+        "recommendationDetected": "Code obfuscation is implemented",
+        "recommendationNotDetected": "Use ProGuard/R8 to obfuscate code"
+      }
+    }
+  },
+  "confidenceThresholds": {
+    "high": 3,
+    "medium": 1
+  },
+  "securityLevelThresholds": {
+    "excellent": 7,
+    "good": 5,
+    "fair": 2
+  }
+}
