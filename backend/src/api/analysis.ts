@@ -1,11 +1,20 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '../utils/logger';
 import { applicationModel, analysisResultModel, vulnerabilityModel } from '../db/models';
+import { FlutterAnalyzer } from '../analyzers/FlutterAnalyzer';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const router = Router();
+
+function buildFlutterAnalyzer(application: any, id: number): FlutterAnalyzer {
+  const extractPath = path.join(path.dirname(application.file_path), `analysis_${id}`);
+  return new FlutterAnalyzer(extractPath, application.platform, id, application.file_path);
+}
 
 router.get('/applications', async (req: Request, res: Response) => {
   try {
@@ -181,10 +190,12 @@ router.get('/applications/:id/download-bundle', async (req: Request, res: Respon
   }
 });
 
+// ─── ReFlutter patch ─────────────────────────────────────────────────────────
 router.post('/applications/:id/patch-reflutter', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    
+    const { burpIp, mode } = req.body as { burpIp?: string; mode?: 'traffic' | 'offset' };
+
     const application = await applicationModel.findById(id);
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
@@ -201,42 +212,27 @@ router.post('/applications/:id/patch-reflutter', async (req: Request, res: Respo
       return res.status(400).json({ error: 'Not a Flutter application' });
     }
 
-    if (!flutterAnalysis.reflutterAvailable) {
-      return res.status(400).json({ error: 'ReFlutter is not installed on the server' });
+    if ((mode ?? 'traffic') === 'traffic' && !burpIp) {
+      return res.status(400).json({ error: 'burpIp is required for traffic interception mode' });
     }
 
-    logger.info(`Patching Flutter APK ${id} with ReFlutter...`);
+    logger.info(`Patching Flutter APK ${id} with ReFlutter (mode=${mode ?? 'traffic'})...`);
 
-    const apkPath = application.file_path;
-    const outputDir = path.join(path.dirname(apkPath), `reflutter_${id}`);
+    const analyzer = buildFlutterAnalyzer(application, id);
+    const result = await analyzer.patchWithReflutter({ mode, burpIp });
 
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
+    if (!result.success) {
+      return res.status(500).json({
+        error: 'Failed to patch with ReFlutter',
+        detail: result.error,
+      });
     }
-
-    const command = `reflutter "${apkPath}" -o "${outputDir}"`;
-    
-    const output = execSync(command, {
-      encoding: 'utf-8',
-      timeout: 300000, 
-      maxBuffer: 50 * 1024 * 1024,
-    });
 
     logger.info('ReFlutter patching completed');
-
-
-    const patchedFiles = fs.readdirSync(outputDir).filter(f => f.endsWith('.apk'));
-    
-    if (patchedFiles.length === 0) {
-      return res.status(500).json({ error: 'Patched APK not found' });
-    }
-
-    const patchedApk = path.join(outputDir, patchedFiles[0]);
 
     return res.json({
       success: true,
       message: 'APK patched successfully with ReFlutter',
-      output: output,
       downloadUrl: `/api/v1/analysis/applications/${id}/download-patched`,
     });
 
@@ -252,36 +248,138 @@ router.post('/applications/:id/patch-reflutter', async (req: Request, res: Respo
 router.get('/applications/:id/download-patched', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    
+
     const application = await applicationModel.findById(id);
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
 
     const outputDir = path.join(path.dirname(application.file_path), `reflutter_${id}`);
-    
+
     if (!fs.existsSync(outputDir)) {
-      return res.status(404).json({ error: 'Patched APK not found' });
+      return res.status(404).json({ error: 'Patched APK not found — patch with ReFlutter first' });
     }
 
     const patchedFiles = fs.readdirSync(outputDir).filter(f => f.endsWith('.apk'));
-    
     if (patchedFiles.length === 0) {
-      return res.status(404).json({ error: 'Patched APK not found' });
+      return res.status(404).json({ error: 'Patched APK not found in output directory' });
     }
 
     const patchedApk = path.join(outputDir, patchedFiles[0]);
 
-    logger.info(`Downloading patched APK for app ${id}`);
-    
-    res.download(patchedApk, `reflutter-patched-${id}.apk`);
+    logger.info(`Downloading patched APK for app ${id}: ${patchedFiles[0]}`);
+
+    res.download(patchedApk, `app${id}_patched.apk`);
 
   } catch (error: any) {
     logger.error('Download patched APK error:', error);
-    return res.status(500).json({ error: 'Failed to download patched APK' });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Failed to download patched APK' });
+    }
   }
 });
 
+// ─── Blutter ─────────────────────────────────────────────────────────────────
+router.post('/applications/:id/run-blutter', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const application = await applicationModel.findById(id);
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (application.platform !== 'ANDROID') {
+      return res.status(400).json({ ran: false, error: 'Blutter only supports Android APKs' });
+    }
+
+    const analysisResult = await analysisResultModel.findByApplicationId(id);
+    const flutterAnalysis = (analysisResult?.manifest_data as any)?.flutter_analysis;
+    if (!flutterAnalysis?.isFlutter) {
+      return res.status(400).json({ ran: false, error: 'Not a Flutter application' });
+    }
+
+    logger.info(`Running Blutter deep analysis for app ${id}...`);
+
+    const analyzer = buildFlutterAnalyzer(application, id);
+    const blutter = await analyzer.runBlutterAnalysis();
+
+    if (!blutter) {
+      return res.status(400).json({ ran: false, error: 'Blutter only applies to Android Flutter apps' });
+    }
+
+    const manifestData = (analysisResult?.manifest_data as any) || {};
+    manifestData.flutter_analysis = { ...(manifestData.flutter_analysis || {}), blutter };
+
+    const { id: _resultId, application_id: _appId, created_at, ...restColumns } =
+      (analysisResult as any) || {};
+
+    await analysisResultModel.deleteByApplicationId(id);
+    await analysisResultModel.create({
+      application_id: id,
+      ...restColumns,
+      manifest_data: manifestData,
+    });
+
+    logger.info(`Blutter completed for app ${id}: ${blutter.totalClasses} classes, ${blutter.findings.length} findings`);
+
+    return res.json({
+      success: true,
+      ran: blutter.ran,
+      totalClasses: blutter.totalClasses,
+      totalMethods: blutter.totalMethods,
+      findings: blutter.findings.length,
+      error: blutter.ran ? undefined : blutter.error,
+    });
+
+  } catch (error: any) {
+    logger.error('run-blutter failed:', error);
+    return res.status(500).json({ ran: false, error: 'Failed to run Blutter', detail: error.message });
+  }
+});
+
+router.get('/applications/:id/download-blutter-frida', async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const outputDir = path.join('/app/analysis_results/blutter', `app${id}`);
+    const fridaScript = path.join(outputDir, 'blutter_frida.js');
+
+    if (!fs.existsSync(fridaScript)) {
+      return res.status(404).json({ error: 'Frida script not found — run Blutter first' });
+    }
+
+    res.download(fridaScript, `app${id}-blutter-frida.js`);
+  } catch (error: any) {
+    logger.error('Download Blutter frida script error:', error);
+    return res.status(500).json({ error: 'Failed to download Frida script' });
+  }
+});
+
+router.get('/applications/:id/download-blutter', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  const outputDir = path.join('/app/analysis_results/blutter', `app${id}`);
+
+  try {
+    if (!fs.existsSync(outputDir)) {
+      return res.status(404).json({ error: 'Blutter output not found — run Blutter first' });
+    }
+
+    const zipPath = path.join('/tmp', `blutter_app${id}_${Date.now()}.zip`);
+    await execAsync(`zip -r -q "${zipPath}" .`, { cwd: outputDir, timeout: 60000 });
+
+    res.download(zipPath, `app${id}-blutter-output.zip`, (err) => {
+      fs.unlink(zipPath, () => {});
+      if (err) logger.warn('download-blutter stream error:', err.message);
+    });
+  } catch (error: any) {
+    logger.error('Failed to package Blutter output:', error);
+    return res.status(500).json({ error: 'Failed to package Blutter output' });
+  }
+});
+
+
+//XAMARIN //
+// --------------------------------------------------------------------------------------//
 router.get('/applications/:id/download-xamarin-dlls', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);

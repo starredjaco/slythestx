@@ -16,6 +16,9 @@ import { SecurityMeasuresAnalyzer } from '../analyzers/securityMeasuresAnalyzer'
 import { NativeAnalyzer, NativeFinding } from '../analyzers/nativeAnalyzer';
 import { XamarinAnalyzer } from '../analyzers/xamarinAnalyzer';
 import { DotNetMauiAnalyzer } from '../analyzers/dotnetMauiAnalyzer';
+import { FaceIdAnalyzer } from '../analyzers/Faceidanalyzer';
+import { FrameworksAnalyzer } from '../analyzers/frameworksAnalyzer'
+import { MachoAnalyzer } from '../analyzers/MachoAnalyzer';
 
 interface AnalysisJobData {
   applicationId: number;
@@ -182,6 +185,21 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
       );
     }
 
+    // 10. Native Analysis iOS  
+    let machoResults = null;
+    if (techResults.platform === 'IOS') {
+      await job.progress(84);
+      await applicationModel.update(applicationId, { analysis_progress: 84 });
+ 
+      logger.info('🍎 Analyzing Mach-O binaries (ipsw)...');
+      const machoAnalyzer = new MachoAnalyzer(extractPath, techResults.platform);
+      machoResults = await machoAnalyzer.runMachoAnalysis();
+ 
+      logger.info(
+        `🍎 Mach-O analyzed: ${machoResults.totalBinaries} binaries, ${machoResults.aggregatedFindings.length} findings`
+      );
+    }
+
     // 11. Security Measures Analysis (85-90%)
     await job.progress(88);
     await applicationModel.update(applicationId, { analysis_progress: 88 });
@@ -192,7 +210,33 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
 
     logger.info(`Security measures analyzed: ${securityMeasuresResults.summary.implementedMeasures}/${securityMeasuresResults.summary.totalMeasures} implemented`);
 
-    // 12. App Info (90-93%)
+    // 12. KYC/FACEID
+    const faceIdAnalyzer = new FaceIdAnalyzer(extractPath, techResults.platform)
+    const faceIdResults = await faceIdAnalyzer.analyze()
+
+     // 13. FRAMEWORKS
+    let frameworksResults = null
+    if (techResults.technology !== 'CORDOVA') {
+      await job.progress(94)
+      await applicationModel.update(applicationId, { analysis_progress: 94 })
+
+      logger.info('📦 Analyzing bundled frameworks and native libraries...')
+      const frameworksAnalyzer = new FrameworksAnalyzer(
+        extractPath,
+        techResults.platform,
+        workingDir
+      )
+      frameworksResults = await frameworksAnalyzer.analyze()
+
+      logger.info(
+        `📦 Frameworks: ${frameworksResults.totalFrameworks} detected — ` +
+        `payments=${frameworksResults.summary.hasPaymentSdk}, ` +
+        `analytics=${frameworksResults.summary.hasAnalyticsSdk}, ` +
+        `ads=${frameworksResults.summary.hasAdSdk}`
+      )
+    }  
+
+    // 14. App Info (90-93%)
     await job.progress(92);
     await applicationModel.update(applicationId, { analysis_progress: 92 });
 
@@ -206,7 +250,7 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
       original_filename: appInfo.filename,
     });
 
-    // 13. Security Score (93-96%)
+    // 15. Security Score (93-96%)
     await job.progress(95);
     await applicationModel.update(applicationId, { analysis_progress: 95 });
 
@@ -220,7 +264,7 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
       securityMeasures: securityMeasuresResults,
     });
 
-    // 14. Vulnerabilities (96-99%)
+    // 16. Vulnerabilities (96-99%)
     await job.progress(98);
     await applicationModel.update(applicationId, { analysis_progress: 98 });
 
@@ -244,6 +288,9 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
         maui_analysis: mauiResults,
         cordova_analysis: cordovaResults,
         security_measures: securityMeasuresResults,
+        faceid_analysis: faceIdResults,
+        frameworks_analysis: frameworksResults,
+        macho_analysis: machoResults,
       },
       permissions: permResults,
       secrets_found: secretResults,
@@ -277,15 +324,19 @@ queue.process('analyze', 1, async (job: Job<AnalysisJobData>) => {
       security_score: securityScore,
       analyzed_at: new Date(),
     });
-
-    try {
-      fs.rmSync(workingDir, { recursive: true, force: true });
-    } catch {}
-
+    
+    if (techResults.technology !== 'FLUTTER') {
+      try {
+        fs.rmSync(workingDir, { recursive: true, force: true });
+      } catch {}
+    } else {
+      logger.info(`[Job ${job.id}] Flutter app — working dir preservado para Blutter/ReFlutter: ${workingDir}`);
+    }
+ 
     logger.info(`[Job ${job.id}] ✅ Analysis completed for application ${applicationId} with score ${securityScore}`);
-
+ 
     return { applicationId, status: 'completed', securityScore };
-
+ 
   } catch (error: any) {
     logger.error(`[Job ${job.id}] ❌ Analysis failed for application ${applicationId}:`, error);
     

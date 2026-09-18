@@ -43,6 +43,11 @@ export const analysisApi = {
     api.delete(`/analysis/applications/${appId}`),
   getStatistics: () =>
     api.get('/analysis/statistics'),
+  runBlutter: (appId: number) =>
+    api.post(`/analysis/applications/${appId}/run-blutter`, {}, { timeout: 1800000 }),
+  patchReFlutter: (appId: number, body: { burpIp: string; mode?: 'traffic' | 'offset' }) =>
+    api.post(`/analysis/applications/${appId}/patch-reflutter`, body, { timeout: 300000 }),
+  extractOffset: (appId: number) =>
+    api.post(`/analysis/applications/${appId}/extract-offset`, {}, { timeout: 120000 }),
 };
-
 export default api;

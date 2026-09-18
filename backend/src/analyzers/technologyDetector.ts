@@ -232,7 +232,8 @@ export class TechnologyDetector {
   private detectDotNetMaui(files: string[]): boolean {
     const f = files.map(x => x.replace(/\\/g, '/'));
     return (
-      f.some(x => x.includes('libassemblies.') && x.endsWith('.blob.so')) &&
+      f.some(x => x.includes('libassemblies.') && x.endsWith('.blob.so')) ||
+      f.some(x => x.endsWith('libassembly-store.so')) &&
       f.some(x => x.endsWith('libxamarin-app.so'))
     );
   }

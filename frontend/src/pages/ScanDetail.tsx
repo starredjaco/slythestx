@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { analysisApi } from '../services/api';
+import FlutterTab from './Technologies/Flutter';
+import { BiometricAnalysis } from './Utils/BiometricAnalysis'
+import { FrameworksAnalysis } from './Utils/FrameworksAnalysis'
+import MachoTab from './Utils/MachoAnalysis'
 
 interface SecurityMeasure {
   type: string;
@@ -293,6 +297,8 @@ export default function ScanDetail() {
   const mauiAnalysis = data.analysis_result?.manifest_data?.maui_analysis;
   const hasMauiAnalysis = !!mauiAnalysis;
   
+  const hasMachoAnalysis = data.application?.platform === 'IOS';
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'vulnerabilities', label: 'Vulnerabilities', icon: '🔒' },
@@ -308,6 +314,7 @@ export default function ScanDetail() {
   if (hasCordovaAnalysis) tabs.push({ id: 'cordova', label: 'Cordova', icon: '📱' });
   if (hasXamarinAnalysis) tabs.push({ id: 'xamarin', label: 'Xamarin', icon: '🎰' });
   if (hasMauiAnalysis) tabs.push({ id: 'maui', label: '.NET MAUI', icon: '🃏' });
+  if (hasMachoAnalysis) tabs.push({ id: 'macho', label: 'iOS Binaries', icon: '🍎' });
 
   return (
     <div className="p-8">
@@ -452,6 +459,8 @@ export default function ScanDetail() {
                   </div>
                 </dl>
               </div>
+              <div><FrameworksAnalysis analysis={data.analysis_result?.manifest_data?.frameworks_analysis} /></div>
+              <div><BiometricAnalysis analysis={data.analysis_result?.manifest_data?.faceid_analysis}/></div>
 
               {data.analysis_result && (
                 <div>
@@ -1577,178 +1586,17 @@ export default function ScanDetail() {
 
           {/* Flutter Tab */}
           {activeTab === 'flutter' && hasFlutterAnalysis && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-4xl">🦋</span>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Flutter Detected</h3>
-                    <p className="text-sm text-gray-400">
-                      This application is built with Flutter Framework
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <FlutterTab
+              flutterAnalysis={flutterAnalysis}
+              applicationId={data.application.id}
+            />
+          )}
 
-              {flutterAnalysis.snapshotInfo ? (
-                <div className="space-y-6">
-                  <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <span>📱</span>
-                      <span>Framework Detection</span>
-                    </h3>
-                    <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-900/50 rounded-lg">
-                        <dt className="text-sm text-gray-400 mb-1">Operating System</dt>
-                        <dd className="font-semibold text-white">{flutterAnalysis.snapshotInfo.os?.toUpperCase()}</dd>
-                      </div>
-                      <div className="p-4 bg-gray-900/50 rounded-lg">
-                        <dt className="text-sm text-gray-400 mb-1">.SO Files Found</dt>
-                        <dd className="font-semibold text-white">{flutterAnalysis.soFiles?.length || 0}</dd>
-                      </div>
-                    </dl>
-                    {flutterAnalysis.soFiles?.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-semibold text-gray-300 mb-2">Files:</p>
-                        <div className="space-y-1">
-                          {flutterAnalysis.soFiles.map((file: string, i: number) => (
-                            <div key={i} className="text-sm font-mono text-gray-400 bg-gray-900/50 px-3 py-2 rounded">
-                              📄 {file}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <span>🎯</span>
-                      <span>Dart Snapshot</span>
-                    </h3>
-                    <dl className="space-y-3">
-                      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/30">
-                        <dt className="text-sm text-purple-400 mb-1">Snapshot Hash</dt>
-                        <dd className="font-mono text-sm text-white break-all">
-                          {flutterAnalysis.snapshotInfo.hash}
-                        </dd>
-                      </div>
-                      {flutterAnalysis.snapshotInfo.flags?.length > 0 && (
-                        <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
-                          <dt className="text-sm text-blue-400 mb-2">Snapshot Flags</dt>
-                          <dd className="flex flex-wrap gap-2">
-                            {flutterAnalysis.snapshotInfo.flags.map((flag: string, i: number) => (
-                              <span 
-                                key={i}
-                                className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium"
-                              >
-                                {flag}
-                              </span>
-                            ))}
-                          </dd>
-                        </div>
-                      )}
-                    </dl>
-                  </div>
-
-                  <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <span>⚙️</span>
-                      <span>Compilation Mode</span>
-                    </h3>
-                    <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className={`p-4 rounded-lg ${
-                        flutterAnalysis.snapshotInfo.compilationMode === 'AOT' 
-                          ? 'bg-emerald-500/10 border border-emerald-500/30' 
-                          : 'bg-yellow-500/10 border border-yellow-500/30'
-                      }`}>
-                        <dt className="text-sm text-gray-400 mb-1">Mode</dt>
-                        <dd className="font-bold text-2xl text-white">
-                          {flutterAnalysis.snapshotInfo.compilationMode}
-                        </dd>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {flutterAnalysis.snapshotInfo.compilationMode === 'AOT' 
-                            ? 'Ahead-of-Time Compilation (Production)' 
-                            : 'Just-in-Time Compilation'}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-gray-900/50 rounded-lg">
-                        <dt className="text-sm text-gray-400 mb-1">Evidence</dt>
-                        <dd className="text-sm text-white font-mono">
-                          {flutterAnalysis.snapshotInfo.compilationMode === 'AOT' 
-                            ? 'SnapshotInstructions symbol present' 
-                            : 'Snapshot symbol detected'}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <div className={`border-2 rounded-xl p-6 ${
-                    flutterAnalysis.snapshotInfo.obfuscated
-                      ? 'bg-orange-500/10 border-orange-500/30'
-                      : 'bg-emerald-500/10 border-emerald-500/30'
-                  }`}>
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <span>{flutterAnalysis.snapshotInfo.obfuscated ? '🔒' : '🔓'}</span>
-                      <span>Code Obfuscation</span>
-                    </h3>
-                    <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-900/50 rounded-lg">
-                        <dt className="text-sm text-gray-400 mb-1">Status</dt>
-                        <dd className={`font-bold text-2xl ${
-                          flutterAnalysis.snapshotInfo.obfuscated ? 'text-orange-400' : 'text-emerald-400'
-                        }`}>
-                          {flutterAnalysis.snapshotInfo.obfuscated ? 'Enabled ✓' : 'Disabled ✗'}
-                        </dd>
-                      </div>
-                      <div className="p-4 bg-gray-900/50 rounded-lg">
-                        <dt className="text-sm text-gray-400 mb-1">Evidence</dt>
-                        <dd className="text-sm text-white">
-                          {flutterAnalysis.snapshotInfo.obfuscated 
-                            ? 'Very few Dart symbols exposed' 
-                            : 'Dart symbols are visible'}
-                        </dd>
-                      </div>
-                    </dl>
-                    {flutterAnalysis.snapshotInfo.obfuscated && (
-                      <div className="mt-4 p-4 bg-orange-500/10 border-l-4 border-orange-500 rounded">
-                        <p className="text-sm text-orange-200">
-                          <strong>⚠️ Warning:</strong> Code is obfuscated, making static analysis difficult. 
-                          Specialized tools are required for reverse engineering.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <span>🎯</span>
-                      <span>Dart SDK</span>
-                    </h3>
-                    <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
-                      <dt className="text-sm text-blue-400 mb-1">Dart Version</dt>
-                      <dd className="font-mono text-3xl font-bold text-white">
-                        {flutterAnalysis.snapshotInfo.dartVersion}
-                      </dd>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">⚠️</span>
-                    <div>
-                      <p className="font-semibold text-yellow-300">
-                        Could not analyze Flutter snapshot
-                      </p>
-                      <p className="text-sm text-yellow-200/80 mt-1">
-                        {flutterAnalysis.error || 'An error occurred during analysis'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Macho Tab */}
+          {activeTab === 'macho' && hasMachoAnalysis && (
+            <MachoTab
+              machoAnalysis={data.analysis_result?.manifest_data?.macho_analysis}
+            />
           )}
 
           {/* Cordova Tab */}

@@ -46,35 +46,49 @@ export class DotNetMauiAnalyzer {
     };
   }
 
-  private findMauiAssembliesBlob(): string {
-    let found: string | null = null;
+private findMauiAssembliesBlob(): string {
+  let found: string | null = null;
 
-    const walk = (dir: string) => {
-      for (const entry of fs.readdirSync(dir)) {
-        const fullPath = path.join(dir, entry);
-        const stat = fs.statSync(fullPath);
+  const walk = (
+    dir: string,
+    matcher: (file: string) => boolean
+  ) => {
+    for (const entry of fs.readdirSync(dir)) {
+      const fullPath = path.join(dir, entry);
+      const stat = fs.statSync(fullPath);
 
-        if (stat.isDirectory()) {
-          walk(fullPath);
-          if (found) return;
-        } else if (
-          entry.startsWith('libassemblies.') &&
-          entry.endsWith('.blob.so')
-        ) {
-          found = fullPath;
-          return;
-        }
+      if (stat.isDirectory()) {
+        walk(fullPath, matcher);
+        if (found) return;
+      } else if (matcher(entry)) {
+        found = fullPath;
+        return;
       }
-    };
-
-    walk(this.extractPath);
-
-    if (!found) {
-      throw new Error('libassemblies.<ARCH>.blob.so not found');
     }
+  };
 
-    return found;
+  walk(
+    this.extractPath,
+    (entry) =>
+      entry.startsWith('libassemblies.') &&
+      entry.endsWith('.blob.so')
+  );
+
+  if (!found) {
+    walk(
+      this.extractPath,
+      (entry) => entry === 'libassembly-store.so'
+    );
   }
+
+  if (!found) {
+    throw new Error(
+      'Neither libassemblies.<ARCH>.blob.so nor libassembly-store.so was found'
+    );
+  }
+
+  return found;
+}
 
   private prepareOutputDir(): string {
     const dir = path.join(
